@@ -6,10 +6,10 @@ resources:
 
 images:
   - name: eks-portfolio-backend
-    newName: <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/eks-portfolio-backend
+    newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-backend
     newTag: latest
   - name: eks-portfolio-frontend
-    newName: <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/eks-portfolio-frontend
+    newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-frontend
     newTag: latest
 
 patchesStrategicMerge:
