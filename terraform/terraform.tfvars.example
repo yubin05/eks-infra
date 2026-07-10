@@ -1,0 +1,10 @@
+# 이 파일을 terraform.tfvars 로 복사한 뒤 본인 값으로 채우세요.
+# terraform.tfvars 는 git에 커밋되지 않습니다 (.gitignore 처리됨).
+
+aws_region  = "ap-northeast-2"
+aws_profile = "default"
+
+availability_zones = ["ap-northeast-2a", "ap-northeast-2c"]
+
+bastion_key_name     = "your-ec2-keypair-name"
+bastion_allowed_cidr = "YOUR.IP.ADDRESS.HERE/32"

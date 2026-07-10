@@ -44,19 +44,22 @@ EKS Cluster
 │   ├── variables.tf
 │   └── outputs.tf
 │
-├── k8s/                    # Kubernetes 매니페스트
-│   ├── backend/
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   └── hpa.yaml        # HPA 오토스케일링
-│   ├── frontend/
-│   │   ├── deployment.yaml
-│   │   └── service.yaml
-│   └── ingress.yaml        # ALB Ingress (로드밸런서)
+├── k8s/                    # Kubernetes 매니페스트 (Kustomize)
+│   ├── base/
+│   │   ├── kustomization.yaml
+│   │   ├── backend-deployment.yaml
+│   │   ├── backend-service.yaml
+│   │   ├── frontend-deployment.yaml
+│   │   ├── frontend-service.yaml
+│   │   └── ingress.yaml    # ALB Ingress (로드밸런서)
+│   └── overlays/
+│       └── dev/
+│           ├── kustomization.yaml      # 이미지 태그는 CI가 자동 갱신
+│           ├── backend-deployment-patch.yaml
+│           └── frontend-deployment-patch.yaml
 │
 ├── argocd/                 # Argo CD Application 정의
-│   ├── application-backend.yaml
-│   └── application-frontend.yaml
+│   └── application.yaml    # k8s/overlays/dev 를 감지
 │
 ├── monitoring/             # 모니터링 구성
 │   ├── prometheus/         # Prometheus 설정
