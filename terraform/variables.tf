@@ -89,3 +89,9 @@ variable "bastion_allowed_cidr" {
   description = "CIDR block allowed to SSH into the Bastion host (e.g. your IP /32)"
   type        = string
 }
+
+variable "infra_repo_raw_url" {
+  description = "eks-infra 저장소의 raw GitHub base URL (Bastion 부팅 시 ArgoCD Application 매니페스트를 가져올 때 사용)"
+  type        = string
+  default     = "https://raw.githubusercontent.com/yubin05/eks-infra"
+}
