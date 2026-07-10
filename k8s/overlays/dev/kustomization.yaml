@@ -2,16 +2,16 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../../base
+- ../../base
 
 images:
-  - name: eks-portfolio-backend
-    newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-backend
-    newTag: latest
-  - name: eks-portfolio-frontend
-    newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-frontend
-    newTag: latest
+- name: eks-portfolio-backend
+  newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-backend
+  newTag: 4bc8fe9b
+- name: eks-portfolio-frontend
+  newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-frontend
+  newTag: 4bc8fe9b
 
 patchesStrategicMerge:
-  - backend-deployment-patch.yaml
-  - frontend-deployment-patch.yaml
+- backend-deployment-patch.yaml
+- frontend-deployment-patch.yaml
