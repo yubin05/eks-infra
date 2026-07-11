@@ -11,6 +11,15 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = [var.bastion_allowed_cidr]
   }
 
+  # Grafana(kubectl port-forward)를 SSM 대신 직접 접속으로 확인하기 위한 임시 포트
+  ingress {
+    description = "Grafana (kubectl port-forward)"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = [var.bastion_allowed_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
