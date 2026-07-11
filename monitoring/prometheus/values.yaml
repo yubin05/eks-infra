@@ -1,0 +1,56 @@
+# helm install prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f values.yaml
+#
+# Grafana admin 비밀번호는 여기에 넣지 않음 (git에 평문 credential이 남는 걸 방지).
+# 설치 후 아래 명령으로 자동 생성된 비밀번호를 조회:
+#   kubectl -n monitoring get secret prom-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d
+
+grafana:
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: false
+
+prometheus:
+  prometheusSpec:
+    replicas: 1
+    retention: 2h
+    retentionSize: "2GB"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storageSpec: {}
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusOperator:
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

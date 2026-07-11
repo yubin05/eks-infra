@@ -44,6 +44,13 @@ resource "aws_iam_role_policy_attachment" "eks_node_ecr_readonly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+# CloudWatch Container Insights (CloudWatch Agent + Fluent Bit DaemonSet)가
+# 노드에서 로그/메트릭을 CloudWatch로 전송하기 위해 필요
+resource "aws_iam_role_policy_attachment" "eks_node_cloudwatch" {
+  role       = aws_iam_role.eks_node.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_role" "bastion" {
   name = "${var.project_name}-bastion-role"
 
