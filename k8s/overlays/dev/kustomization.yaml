@@ -7,10 +7,10 @@ resources:
 images:
 - name: eks-portfolio-backend
   newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-backend
-  newTag: 4bc8fe9b
+  newTag: 2b3f6dcc
 - name: eks-portfolio-frontend
   newName: 248563009287.dkr.ecr.ap-northeast-2.amazonaws.com/eks-portfolio-frontend
-  newTag: 4bc8fe9b
+  newTag: 2b3f6dcc
 
 patchesStrategicMerge:
 - backend-deployment-patch.yaml
