@@ -16,20 +16,57 @@ GitHub Actions + Argo CD CI/CD 파이프라인, Prometheus + Grafana 모니터�
 
 ## 아키텍처
 
+### CI/CD 배포 흐름
+
+```mermaid
+flowchart TD
+    App["eks-app · main에 코드 푸시"] --> CI["GitHub Actions · Docker 이미지 빌드"]
+    CI -->|이미지 푸시| ECR["Amazon ECR"]
+    CI -->|이미지 태그 커밋| Git["eks-infra · k8s/overlays/dev"]
+    Git -->|변경 감지| Argo["Argo CD · 자동 동기화"]
+    Argo -->|매니페스트 적용| EKS["EKS · Frontend / Backend"]
+    ECR -->|이미지 pull| EKS
 ```
-개발자 코드 푸시 (eks-app)
-        ↓
-GitHub Actions (이미지 빌드 → ECR 푸시)
-        ↓
-Argo CD (eks-infra K8s 매니페스트 감지 → EKS 자동 배포)
-        ↓
-EKS Cluster
-├── Frontend (Deployment + Service + HPA)
-├── Backend  (Deployment + Service + HPA)
-└── ALB Ingress Controller (로드밸런서)
-        ↓
-모니터링: Prometheus + Grafana / CloudWatch Container Insights
+
+CI는 이미지를 ECR에 올린 뒤 `eks-infra`의 이미지 태그를 갱신합니다. Argo CD는 `k8s/overlays/dev` 변경을 감지해 자동 동기화합니다.
+
+### 서비스 요청 흐름
+
+```mermaid
+flowchart TD
+    Browser["브라우저"] --> ALB["ALB · Ingress"]
+    subgraph Cluster["EKS Cluster"]
+        ALB -->|/| FS["Frontend Service · 80"]
+        FS --> FE["Frontend Pod · HTML / JavaScript"]
+        ALB -->|/api| BS["Backend Service · 8080"]
+        BS --> BE["Backend Pod · Flask"]
+        HPA["Backend HPA · CPU 목표 30%"] -.->|Pod 2~6개 조절| BE
+    end
+    FE -.->|브라우저에서 /api/hello 호출| Browser
 ```
+
+Ingress는 `/`를 프론트엔드로, `/api`를 백엔드로 라우팅합니다. HPA는 백엔드 Deployment를 대상으로 CPU 사용률에 따라 Pod 수를 조절합니다.
+
+### 백엔드 API 호출 순서
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant Web as 브라우저
+    participant ALB as ALB / Ingress
+    participant API as Backend Service / Flask
+    User->>Web: 백엔드 API 호출 버튼 클릭
+    Web->>ALB: GET /api/hello
+    ALB->>API: /api 경로 라우팅 · 8080
+    API-->>ALB: JSON · message, hostname
+    ALB-->>Web: JSON 응답
+    Web-->>User: 메시지와 Pod hostname 표시
+```
+
+- `GET /api/health`: 상태 확인 (`status: ok`)
+- `GET /api/hello`: 메시지와 요청을 처리한 Pod의 hostname 반환
+
+현재 백엔드는 데모 API이며 데이터베이스 연결은 없습니다. 위 다이어그램은 저장소의 코드와 매니페스트를 기준으로 작성했습니다.
 
 ---
 
