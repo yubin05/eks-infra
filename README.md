@@ -16,7 +16,14 @@ GitHub Actions + Argo CD CI/CD 파이프라인, Prometheus + Grafana 모니터�
 
 ## 아키텍처
 
+![아키텍처 — Dark blueprint](docs/diagrams/eks-blueprint.svg)
+
+[draw.io 편집 파일](docs/diagrams/eks-blueprint.drawio)
+
 ### CI/CD 배포 흐름
+
+<details>
+<summary>Mermaid 원본 보기</summary>
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"htmlLabels":false,"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
@@ -35,9 +42,14 @@ flowchart LR
     class ECR storage;
 ```
 
+</details>
+
 CI는 이미지를 ECR에 올린 뒤 `eks-infra`의 이미지 태그를 갱신합니다. Argo CD는 `k8s/overlays/dev` 변경을 감지해 자동 동기화합니다.
 
 ### 서비스 요청 흐름
+
+<details>
+<summary>Mermaid 원본 보기</summary>
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"htmlLabels":false,"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
@@ -59,9 +71,14 @@ flowchart LR
     class FS,FE,HPA neutral;
 ```
 
+</details>
+
 Ingress는 `/`를 프론트엔드로, `/api`를 백엔드로 라우팅합니다. HPA는 백엔드 Deployment를 대상으로 CPU 사용률에 따라 Pod 수를 조절합니다.
 
 ### 백엔드 API 호출 순서
+
+<details>
+<summary>Mermaid 원본 보기</summary>
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"fontFamily":"sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"htmlLabels":false,"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
@@ -78,6 +95,8 @@ sequenceDiagram
     ALB-->>Web: 200 OK · JSON
     Note over Web: 메시지와 Pod hostname 표시
 ```
+
+</details>
 
 - `GET /api/health`: 상태 확인 (`status: ok`)
 - `GET /api/hello`: 메시지와 요청을 처리한 Pod의 hostname 반환
