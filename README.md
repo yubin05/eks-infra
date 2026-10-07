@@ -35,10 +35,12 @@ CI는 이미지를 ECR에 올린 뒤 `eks-infra`의 이미지 태그를 갱신�
 ```mermaid
 flowchart TD
     Browser["브라우저"] --> ALB["ALB · Ingress"]
+    ALB -->|/| FS["Frontend Service · 80"]
+    ALB -->|/api| BS["Backend Service · 8080"]
     subgraph Cluster["EKS Cluster"]
-        ALB -->|/| FS["Frontend Service · 80"]
+        FS["Frontend Service · 80"]
         FS --> FE["Frontend Pod · HTML / JavaScript"]
-        ALB -->|/api| BS["Backend Service · 8080"]
+        BS["Backend Service · 8080"]
         BS --> BE["Backend Pod · Flask"]
         HPA["Backend HPA · CPU 목표 30%"] -.->|Pod 2~6개 조절| BE
     end
