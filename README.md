@@ -16,7 +16,7 @@ GitHub Actions + Argo CD CI/CD 파이프라인, Prometheus + Grafana 모니터�
 
 ## 아키텍처
 
-![아키텍처 — Dark blueprint](docs/diagrams/eks-blueprint.svg?rev=3)
+![아키텍처 — Dark blueprint](docs/diagrams/eks-blueprint-v3.svg)
 
 [draw.io 편집 파일](docs/diagrams/eks-blueprint.drawio)
 
