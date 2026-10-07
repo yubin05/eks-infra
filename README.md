@@ -19,13 +19,20 @@ GitHub Actions + Argo CD CI/CD 파이프라인, Prometheus + Grafana 모니터�
 ### CI/CD 배포 흐름
 
 ```mermaid
-flowchart TD
-    App["eks-app · main에 코드 푸시"] --> CI["GitHub Actions · Docker 이미지 빌드"]
-    CI -->|이미지 푸시| ECR["Amazon ECR"]
-    CI -->|이미지 태그 커밋| Git["eks-infra · k8s/overlays/dev"]
-    Git -->|변경 감지| Argo["Argo CD · 자동 동기화"]
-    Argo -->|매니페스트 적용| EKS["EKS · Frontend / Backend"]
-    ECR -->|이미지 pull| EKS
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Arial, sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
+flowchart LR
+    App("01 · SOURCE<br/>eks-app") --> CI("02 · BUILD<br/>GitHub Actions")
+    CI -->|image push| ECR("Amazon ECR")
+    CI -->|tag update| Git("03 · CONFIG<br/>eks-infra")
+    Git --> Argo("04 · SYNC<br/>Argo CD")
+    Argo --> EKS("05 · DEPLOY<br/>Amazon EKS")
+    ECR -.->|image pull| EKS
+    classDef core fill:#163647,stroke:#163647,color:#ffffff,stroke-width:1px;
+    classDef accent fill:#0f766e,stroke:#0f766e,color:#ffffff,stroke-width:1px;
+    classDef storage fill:#eef6f7,stroke:#659a9f,color:#163647,stroke-width:1px;
+    class App,CI,Git core;
+    class Argo,EKS accent;
+    class ECR storage;
 ```
 
 CI는 이미지를 ECR에 올린 뒤 `eks-infra`의 이미지 태그를 갱신합니다. Argo CD는 `k8s/overlays/dev` 변경을 감지해 자동 동기화합니다.
@@ -33,18 +40,23 @@ CI는 이미지를 ECR에 올린 뒤 `eks-infra`의 이미지 태그를 갱신�
 ### 서비스 요청 흐름
 
 ```mermaid
-flowchart TD
-    Browser["브라우저"] --> ALB["ALB · Ingress"]
-    ALB -->|/| FS["Frontend Service · 80"]
-    ALB -->|/api| BS["Backend Service · 8080"]
-    subgraph Cluster["EKS Cluster"]
-        FS["Frontend Service · 80"]
-        FS --> FE["Frontend Pod · HTML / JavaScript"]
-        BS["Backend Service · 8080"]
-        BS --> BE["Backend Pod · Flask"]
-        HPA["Backend HPA · CPU 목표 30%"] -.->|Pod 2~6개 조절| BE
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Arial, sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
+flowchart LR
+    Browser("CLIENT<br/>Browser") --> ALB("ENTRY<br/>AWS ALB")
+    subgraph Cluster["AMAZON EKS"]
+        direction LR
+        FS("Frontend Service<br/>port 80") --> FE("Frontend Pod<br/>HTML · JavaScript")
+        BS("Backend Service<br/>port 8080") --> BE("Backend Pod<br/>Flask API")
+        HPA("AUTOSCALING<br/>CPU 30% · 2–6 Pods") -.-> BE
     end
-    FE -.->|브라우저에서 /api/hello 호출| Browser
+    ALB -->|/| FS
+    ALB -->|/api| BS
+    classDef core fill:#163647,stroke:#163647,color:#ffffff,stroke-width:1px;
+    classDef accent fill:#0f766e,stroke:#0f766e,color:#ffffff,stroke-width:1px;
+    classDef neutral fill:#eef6f7,stroke:#659a9f,color:#163647,stroke-width:1px;
+    class Browser,ALB core;
+    class BS,BE accent;
+    class FS,FE,HPA neutral;
 ```
 
 Ingress는 `/`를 프론트엔드로, `/api`를 백엔드로 라우팅합니다. HPA는 백엔드 Deployment를 대상으로 CPU 사용률에 따라 Pod 수를 조절합니다.
@@ -52,17 +64,19 @@ Ingress는 `/`를 프론트엔드로, `/api`를 백엔드로 라우팅합니다.
 ### 백엔드 API 호출 순서
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Arial, sans-serif","fontSize":"14px","primaryColor":"#eef6f7","primaryTextColor":"#163647","primaryBorderColor":"#659a9f","lineColor":"#64808b","secondaryColor":"#f1f5f9","tertiaryColor":"#f8fafc","clusterBkg":"#f8fafc","clusterBorder":"#cbd5e1","edgeLabelBackground":"#ffffff","actorBkg":"#163647","actorBorder":"#163647","actorTextColor":"#ffffff","actorLineColor":"#94a3b8","signalColor":"#476673","signalTextColor":"#163647","labelBoxBkgColor":"#eef6f7","labelBoxBorderColor":"#659a9f","labelTextColor":"#163647","activationBkgColor":"#d3eeea","activationBorderColor":"#0f766e","sequenceNumberColor":"#ffffff"},"flowchart":{"curve":"linear","nodeSpacing":30,"rankSpacing":40},"sequence":{"mirrorActors":false,"actorMargin":35,"messageMargin":30}}}%%
 sequenceDiagram
-    actor User as 사용자
-    participant Web as 브라우저
-    participant ALB as ALB / Ingress
-    participant API as Backend Service / Flask
-    User->>Web: 백엔드 API 호출 버튼 클릭
+    autonumber
+    participant Web as Browser
+    participant ALB as AWS ALB
+    participant API as Flask API
     Web->>ALB: GET /api/hello
-    ALB->>API: /api 경로 라우팅 · 8080
+    ALB->>API: /api → Service:8080
+    activate API
     API-->>ALB: JSON · message, hostname
-    ALB-->>Web: JSON 응답
-    Web-->>User: 메시지와 Pod hostname 표시
+    deactivate API
+    ALB-->>Web: 200 OK · JSON
+    Note over Web: 메시지와 Pod hostname 표시
 ```
 
 - `GET /api/health`: 상태 확인 (`status: ok`)
